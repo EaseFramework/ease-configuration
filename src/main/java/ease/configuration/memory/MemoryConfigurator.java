@@ -22,4 +22,10 @@ public class MemoryConfigurator extends ConfiguratorBase {
 			set(key, defaultConfigurationValues.get(key));
 		}
 	}
+	
+	
+	
+	
+	
+	
 }

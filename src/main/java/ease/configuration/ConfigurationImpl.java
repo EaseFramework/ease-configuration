@@ -1,7 +1,13 @@
 package ease.configuration;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+
+import ease.binder.DataBinder;
+import ease.configuration.utils.StringUtils;
 
 class ConfigurationImpl implements Configuration {
 	
@@ -10,9 +16,24 @@ class ConfigurationImpl implements Configuration {
 	public ConfigurationImpl(List<Configurator> configurators) {
 		this.configurators = configurators;
 	}
+	
+	@Override
+	public <T> T getSectionOrDefault(String key, T defaultValue, Class<T> cls) {
+		DescendentConfigCollector collector = new DescendentConfigCollector(key);
+		collectConfig(collector);
+		
+		Map<String,String> config = collector.getConfig();
+		
+		if(config==null || config.size() ==0) {
+			return defaultValue;
+		}
+		
+		DataBinder dataBinder = new DataBinder();
+		return dataBinder.bind(config, cls);
+	}
 
 	@Override
-	public String getOrDefault(String key, String defaultValue) {
+	public String getStringOrDefault(String key, String defaultValue) {
 		final String value = get(key);
 
 		if (value == null) {
@@ -92,4 +113,43 @@ class ConfigurationImpl implements Configuration {
 
 		return null;
 	}
+	
+	
+	private void collectConfig(ConfigCollector collector) {
+		for(Configurator configurator: configurators) {
+			configurator.forEach(collector);
+		}
+	}
+	
+	private static interface ConfigCollector extends BiConsumer<String, String> {
+		public Map<String,String> getConfig();
+		
+	}
+	
+	
+	private static class DescendentConfigCollector implements ConfigCollector {
+		
+		private Map<String,String> configurationMap = new HashMap<>();
+		private String parentKey;
+		
+		
+		public DescendentConfigCollector(String parentKey) {
+			this.parentKey = parentKey;
+		}
+		
+		@Override
+		public void accept(String key, String value) {
+			String descendentKey = ConfigurationKeyHelper.getDescendentKey(parentKey, key);
+			
+			if(!StringUtils.isNullOrEmpty(descendentKey)) {
+				configurationMap.put(descendentKey, value);
+			}
+		}
+
+		@Override
+		public Map<String, String> getConfig() {
+			return configurationMap;
+		}
+	}
+	
 }

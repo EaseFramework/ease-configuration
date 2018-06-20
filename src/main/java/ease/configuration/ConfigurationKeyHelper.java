@@ -23,4 +23,30 @@ public class ConfigurationKeyHelper {
 
 		return lastIndex == -1 ? null : key.substring(0, lastIndex);
 	}
+	
+	
+	public static String getChildKey(String parentSegment, String key) {
+		final String parentPrefix = createParentKeyPrefix(parentSegment);
+		
+		if(key.startsWith(parentPrefix)) {
+			int indexOf = key.indexOf(ConfigurationConstants.KEY_DELIMITER, parentPrefix.length());
+			return indexOf == -1 ? key.substring(parentPrefix.length()) : key.substring(parentPrefix.length(), indexOf);
+		}
+		
+		return null;
+	}
+	
+	public static String getDescendentKey(String parentSegment, String key) {
+		final String parentPrefix = createParentKeyPrefix(parentSegment);
+		
+		if(key.startsWith(parentPrefix)) {
+			return key.substring(parentPrefix.length());
+		}
+		
+		return null;
+	}
+	
+	private static String createParentKeyPrefix(String parentSegment) {
+		return (StringUtils.isNullOrEmpty(parentSegment) ? "" : parentSegment + ConfigurationConstants.KEY_DELIMITER).toLowerCase();
+	}
 }

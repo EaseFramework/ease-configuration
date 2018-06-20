@@ -67,7 +67,7 @@ The above key delegates the parent key as parentPath and the child key as childP
 When storing list values the following format should be used.
 
 ```
-	parentPart.0.childKey	
+	parentPart[0].childKey	
 	
 ```
 
